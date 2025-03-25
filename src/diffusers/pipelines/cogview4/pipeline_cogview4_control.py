@@ -22,6 +22,7 @@ from transformers import AutoTokenizer, GlmModel
 
 from ...callbacks import MultiPipelineCallbacks, PipelineCallback
 from ...image_processor import PipelineImageInput, VaeImageProcessor
+from ...loaders import CogView4LoraLoaderMixin
 from ...models import AutoencoderKL, CogView4Transformer2DModel
 from ...pipelines.pipeline_utils import DiffusionPipeline
 from ...schedulers import FlowMatchEulerDiscreteScheduler
@@ -136,7 +137,7 @@ def retrieve_timesteps(
     return timesteps, num_inference_steps
 
 
-class CogView4ControlPipeline(DiffusionPipeline):
+class CogView4ControlPipeline(DiffusionPipeline, CogView4LoraLoaderMixin):
     r"""
     Pipeline for text-to-image generation using CogView4.
 
