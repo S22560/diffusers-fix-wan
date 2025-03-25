@@ -1354,8 +1354,12 @@ def _convert_non_diffusers_wan_lora_to_diffusers(state_dict):
     converted_state_dict = {}
     original_state_dict = {k[len("diffusion_model.") :]: v for k, v in state_dict.items()}
 
-    num_blocks = len({k.split("blocks.")[1].split(".")[0] for k in original_state_dict})
+    num_blocks = len({k.split("blocks.")[1].split(".")[0] for k in original_state_dict if "blocks" in k})
     is_i2v_lora = any("k_img" in k for k in original_state_dict) and any("v_img" in k for k in original_state_dict)
+    
+    for k in list(original_state_dict.keys()):
+        if "blocks" not in k:
+            converted_state_dict[k] = original_state_dict.pop(k)
 
     for i in range(num_blocks):
         # Self-attention
