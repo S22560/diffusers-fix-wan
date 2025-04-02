@@ -1364,24 +1364,17 @@ def _convert_non_diffusers_wan_lora_to_diffusers(state_dict):
     for i in range(num_blocks):
         # Self-attention
         for o, c in zip(["q", "k", "v", "o"], ["to_q", "to_k", "to_v", "to_out.0"]):
-            converted_state_dict[f"blocks.{i}.attn1.{c}.lora_A.weight"] = original_state_dict.pop(
-                f"blocks.{i}.self_attn.{o}.lora_A.weight"
-            )
-            converted_state_dict[f"blocks.{i}.attn1.{c}.lora_B.weight"] = original_state_dict.pop(
-                f"blocks.{i}.self_attn.{o}.lora_B.weight"
-            )
+            if f"blocks.{i}.self_attn.{o}.lora_A.weight" in original_state_dict:
+                converted_state_dict[f"blocks.{i}.attn1.{c}.lora_A.weight"] = original_state_dict.pop(
+                    f"blocks.{i}.self_attn.{o}.lora_A.weight"
+                )
+                converted_state_dict[f"blocks.{i}.attn1.{c}.lora_B.weight"] = original_state_dict.pop(
+                    f"blocks.{i}.self_attn.{o}.lora_B.weight"
+                )
 
         # Cross-attention
         for o, c in zip(["q", "k", "v", "o"], ["to_q", "to_k", "to_v", "to_out.0"]):
-            converted_state_dict[f"blocks.{i}.attn2.{c}.lora_A.weight"] = original_state_dict.pop(
-                f"blocks.{i}.cross_attn.{o}.lora_A.weight"
-            )
-            converted_state_dict[f"blocks.{i}.attn2.{c}.lora_B.weight"] = original_state_dict.pop(
-                f"blocks.{i}.cross_attn.{o}.lora_B.weight"
-            )
-
-        if is_i2v_lora:
-            for o, c in zip(["k_img", "v_img"], ["add_k_proj", "add_v_proj"]):
+            if f"blocks.{i}.cross_attn.{o}.lora_A.weight" in original_state_dict:
                 converted_state_dict[f"blocks.{i}.attn2.{c}.lora_A.weight"] = original_state_dict.pop(
                     f"blocks.{i}.cross_attn.{o}.lora_A.weight"
                 )
@@ -1389,14 +1382,25 @@ def _convert_non_diffusers_wan_lora_to_diffusers(state_dict):
                     f"blocks.{i}.cross_attn.{o}.lora_B.weight"
                 )
 
+        if is_i2v_lora:
+            for o, c in zip(["k_img", "v_img"], ["add_k_proj", "add_v_proj"]):
+                if f"blocks.{i}.cross_attn.{o}.lora_A.weight" in original_state_dict:
+                    converted_state_dict[f"blocks.{i}.attn2.{c}.lora_A.weight"] = original_state_dict.pop(
+                        f"blocks.{i}.cross_attn.{o}.lora_A.weight"
+                    )
+                    converted_state_dict[f"blocks.{i}.attn2.{c}.lora_B.weight"] = original_state_dict.pop(
+                        f"blocks.{i}.cross_attn.{o}.lora_B.weight"
+                    )
+
         # FFN
         for o, c in zip(["ffn.0", "ffn.2"], ["net.0.proj", "net.2"]):
-            converted_state_dict[f"blocks.{i}.ffn.{c}.lora_A.weight"] = original_state_dict.pop(
-                f"blocks.{i}.{o}.lora_A.weight"
-            )
-            converted_state_dict[f"blocks.{i}.ffn.{c}.lora_B.weight"] = original_state_dict.pop(
-                f"blocks.{i}.{o}.lora_B.weight"
-            )
+            if f"blocks.{i}.{o}.lora_A.weight" in original_state_dict:
+                converted_state_dict[f"blocks.{i}.ffn.{c}.lora_A.weight"] = original_state_dict.pop(
+                    f"blocks.{i}.{o}.lora_A.weight"
+                )
+                converted_state_dict[f"blocks.{i}.ffn.{c}.lora_B.weight"] = original_state_dict.pop(
+                    f"blocks.{i}.{o}.lora_B.weight"
+                )
 
     if len(original_state_dict) > 0:
         raise ValueError(f"`state_dict` should be empty at this point but has {original_state_dict.keys()=}")
